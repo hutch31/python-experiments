@@ -4,6 +4,9 @@ import math
 import random
 import numpy
 from rbfnet import rbfnet
+from rbfnet import ParticleSwarm
+
+functions = 14
 
 # Define a routing grid
 # Origin 0, 0 is in lower-left corner
@@ -36,8 +39,7 @@ class router:
         self.grid = rg
         self.cur = (0, 0)
         self.target = (0, 0)
-        self.rbf = rbfnet(7, 4, 4)
-        self.rbf.randomize()
+        self.rbf = rbfnet(7, functions, 4)
 
     def set_position(self, x, y):
         self.cur = (x, y)
@@ -148,25 +150,31 @@ class router:
 def training_loop():
     max_score = 0
     best_rbf = None
+    pswarm = ParticleSwarm(7, functions, 4)
 
-    for t in range(1000):
-        rg = rgrid()
-        rg.grid[0][3] = 2
+    for t in range(40):
+        for p in pswarm.particles:
+            rg = rgrid()
+            rg.grid[0][3] = 2
 
-        r = router(rg)
-        r.target = (7, 7)
-        r.do_route()
-        r.grid.display()
+            r = router(rg)
+            r.rbf = p
+            r.target = (7, 7)
+            r.do_route()
+            r.grid.display()
 
-        if r.score() > max_score:
-            print "Updating new best score", r.score()
-            best_rbf = r.rbf
-            max_score = r.score()
+            p.score = r.score()
+
+#        if r.score() > max_score:
+#            print "Updating new best score", r.score()
+#            best_rbf = r.rbf
+#            max_score = r.score()
+        pswarm.update()
 
     rg = rgrid()
     rg.grid[0][3] = 2
     r = router(rg)
-    r.rbf = best_rbf
+    r.rbf.from_gene(pswarm.gbest)
     r.target = (7, 7)
     r.do_route()
     r.grid.display()
