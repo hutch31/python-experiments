@@ -3,7 +3,7 @@
 import math
 import random
 import numpy
-
+from rbfnet import rbfnet
 
 # Define a routing grid
 # Origin 0, 0 is in lower-left corner
@@ -30,48 +30,13 @@ class rgrid:
         rv.grid = self.grid or rg.grid
         return rv
 
-class rbfnet:
-    def __init__(self, dim=2, func=2, outputs=2):
-        self.dim = dim
-        self.func = func
-        self.outputs = outputs
-        self.center = [[0.0] * dim for f in range(func)]
-        self.weight = [[0.0] * func for o in range(outputs)]
-
-    def randomize(self):
-        for f in range(self.func):
-            for d in range(self.dim):
-                self.center[f][d] = random.random()
-        for o in range(self.outputs):
-            for f in range(self.func):
-                self.weight[o][f] = random.random()
-
-    def eval(self, inputs):
-        if len(inputs) != self.dim:
-            raise ValueError('# Inputs must match RBF dimension')
-
-        fval = []
-        for ci in range(self.func):
-            temp = 0.0
-            for cj in range(self.dim):
-                temp += math.pow(self.center[ci][cj] - inputs[cj], 2)
-            fval.append(math.pow(math.e, -temp))
-
-        out = []
-        for o in range(self.outputs):
-            temp = 0.0
-            for f in range(self.func):
-                temp += self.weight[o][f] * fval[f]
-            out.append(temp)
-        return out
-
 
 class router:
     def __init__(self, rg=None):
         self.grid = rg
         self.cur = (0, 0)
         self.target = (0, 0)
-        self.rbf = rbfnet(6, 4, 4)
+        self.rbf = rbfnet(7, 4, 4)
         self.rbf.randomize()
 
     def set_position(self, x, y):
@@ -136,10 +101,11 @@ class router:
         self.grid.grid[self.cur[0]][self.cur[1]] = 1
 
     # move in a direction, directions are 0=West,1=North,2=East,3=South
+    # Returns False if the move was blocked, True if successful
     def move(self, dir=0):
         bvec = self.blocked()
         if bvec[dir]:
-            return
+            return 0.0
         else:
             print "Debug: cur",self.cur,"move",dir,"blocked",bvec
             if dir == 0:
@@ -151,6 +117,7 @@ class router:
             elif dir == 3:
                 self.cur = (self.cur[0], self.cur[1]-1)
             self.mark()
+            return 1.0
 
     def do_route(self):
         # normalize x delta
@@ -158,13 +125,15 @@ class router:
         delta_y = ((self.target[1]-self.cur[1])/float(self.grid.y_dim)/2.0+0.5)
         trials = self.manhattan()*3
         print "Manhattan distance", self.manhattan()
+        prev_success = 1.0
         self.mark()
         while trials > 0 and self.target != self.cur:
             inputs = [delta_x, delta_y]+self.blocked()
+            inputs.append(prev_success)
             result = self.rbf.eval(inputs)
             movedir = numpy.argmax(result)
             print "Trials", trials, "result", result, "movedir=", movedir
-            self.move(movedir)
+            prev_success = self.move(movedir)
             trials -= 1
 
     def score(self):
