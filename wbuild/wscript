@@ -1,0 +1,14 @@
+import os
+
+top = '.'
+out = 'build_dir'
+
+def configure(ctx):
+    pass
+
+def build(ctx):
+    for vfile in ctx.path.ant_glob('*.vv'):
+        tgt = os.path.splitext(str(vfile))[0]+'.v'
+        os.system('touch ' + tgt)
+        ctx(rule='cp ${SRC} ${TGT}', source=vfile, target=tgt, update_outputs=True)
+

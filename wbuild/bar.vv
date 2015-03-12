@@ -1,0 +1,10 @@
+module bar;
+
+  initial
+    begin
+      $display ("bar");
+      $display ("bar 2");
+    end
+
+endmodule
+

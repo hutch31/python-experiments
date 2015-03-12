@@ -1,0 +1,9 @@
+module foo;
+
+  initial
+    begin
+      $display ("foo");
+    end
+
+endmodule
+
