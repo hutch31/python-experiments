@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+from waflib import Build
+from waflib.TaskGen import after, feature
+import os
+
+sysc_include = os.environ['HOME']+'/devel/systemc-2.3.1/include'
+sysc_lib = os.environ['HOME']+'/devel/systemc-2.3.1/lib-macosx64'
+os.environ['SYSTEMC_INCLUDE'] = sysc_include
+os.environ['SYSTEMC_LIBDIR'] = sysc_lib
+
+def options(opt):
+        opt.load('compiler_cxx')
+
+
+def configure(conf):
+        conf.load('compiler_cxx')
+
+
+def build(bld):
+        bld(rule="verilator -sc ${SRC}", source=['vnand.v'], target=['obj_dir/Vvnand.mk', 'obj_dir/Vvnand.h'])
+        bld(rule="make -C obj_dir -f Vvnand.mk; cp obj_dir/Vvnand__ALL.a obj_dir/libvnand.a", source=['obj_dir/Vvnand.mk'], target='obj_dir/libvnand.a')
+        bld.post_mode = Build.POST_LAZY
+        bld.add_group()
+        #bld.read_stlib(name='vnand', paths=['/Users/guy/devel/tut-sysc/build/obj_dir'])
+        bld.read_stlib(name='vnand', paths=[bld.path.find_or_declare('obj_dir')])
+        bld.program(
+            source = ['nbench.cc', 'verilated.cpp'],
+            #use = 'vnand',
+            target       = 'nbench',
+            includes     = [sysc_include, 'obj_dir', '/usr/local/share/verilator/include'],
+            lib          = ['systemc'],
+            libpath      = [sysc_lib],
+            stlib        = ['vnand'],
+            stlibpath    = ['obj_dir']
+            #linkflags    = ['-g'], 7
+            #rpath        = ['/opt/kde/lib'] 8
+            #vnum         = '1.2.3',
+
+            #install_path = '${SOME_PATH}/bin', 9
+            #cflags       = ['-O2', '-Wall'], 10
+            #cxxflags     = ['-O3'],
+            #dflags       = ['-g'],
+        )
