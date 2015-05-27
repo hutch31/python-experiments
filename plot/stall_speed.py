@@ -16,7 +16,7 @@ def retract_values():
     return np.array(rv)
 
 def airspeed_correction_chart(filename=''):
-    plt.figure(4, figsize=(6,10))
+    plt.figure(4, figsize=(6,8))
     ev = extended_values()
     rv = retract_values()
     plt.plot(ev[:,1], ev[:,0], label='Flaps Extended')
@@ -32,7 +32,7 @@ def airspeed_correction_chart(filename=''):
         plt.show()
 
 def xwind_plot(maximum=40, filename=''):
-    plt.figure(3, figsize=(6,10))
+    plt.figure(3, figsize=(6,7.5))
     # Draw segments for each 10 degree arc of crosswind
     for a in range(0,18):
         angle = (math.pi / 18) * a
@@ -55,7 +55,7 @@ def xwind_plot(maximum=40, filename=''):
         plt.show()
 
 def density_altitude(filename=''):
-    fig = plt.figure(3, figsize=(6,10))
+    fig = plt.figure(3, figsize=(6,8))
     # plot the ISA line
     y = np.array(range(0, 22001, 2000))
     x = 15 - 1.98*(y/1000)
