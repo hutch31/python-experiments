@@ -33,4 +33,4 @@ class TestPoly(unittest.TestCase):
         self.assertEquals(r, 0)
 
 if __name__ == '__main__':
-    unittest.test()
+    unittest.main()

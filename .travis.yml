@@ -1,4 +1,7 @@
 language: python
 python:
-  - 2.7
+  - "2.7"
 script: gcm/gfmul.py
+branches:
+    only:
+        - master
